@@ -1,3 +1,0 @@
-/home/kuznecov/ITMO/OS/Lab1/build/CMakeFiles/OS1.dir
-/home/kuznecov/ITMO/OS/Lab1/build/CMakeFiles/edit_cache.dir
-/home/kuznecov/ITMO/OS/Lab1/build/CMakeFiles/rebuild_cache.dir
