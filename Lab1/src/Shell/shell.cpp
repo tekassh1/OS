@@ -1,10 +1,10 @@
 #include <unistd.h>
 #include <iostream>
-
 #include <csignal>
 #include <sys/wait.h>
 #include <cstring>
 #include <sstream>
+#include <chrono>
 
 #include "shell.h"
 
@@ -89,6 +89,7 @@ int Shell::childProcess(void* arg) {
 
 
 int Shell::executeProcess(void* arg) {
+    auto start = std::chrono::high_resolution_clock::now();
     char* child_stack = new char[STACK_SIZE];
     pid_t pid = clone(childProcess, child_stack + STACK_SIZE, SIGCHLD, arg);
 
@@ -99,6 +100,10 @@ int Shell::executeProcess(void* arg) {
     else {
         res = waitpid(pid, nullptr, 0);
     }
+    auto stop = std::chrono::high_resolution_clock::now();
+    auto elapsed = std::chrono::duration_cast<std::chrono::milliseconds>(stop - start);
+
+    std::cout << elapsed.count() << "ms" << std::endl;
 
     delete[] child_stack;
     return res;
