@@ -1,5 +1,8 @@
 .*
 !.gitignore
+!.github
+!.clang-tidy
 
 build
-SystemLoaders/ExternalSorter
+build-debug
+build-release

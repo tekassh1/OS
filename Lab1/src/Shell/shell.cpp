@@ -8,6 +8,8 @@
 
 #include "shell.h"
 
+#define MAX_PATH_SIZE 256
+
 std::vector<std::string> Shell::split(const std::string& s, char delim) {
     std::vector<std::string> tokens;
     std::string token;
@@ -37,12 +39,23 @@ void Shell::clearDynaArgs(char** argv, size_t size) {
 }
 
 int Shell::start() {
-    cwd = getcwd(nullptr, 256);
+    cwd = getcwd(nullptr, MAX_PATH_SIZE);
 
     while (true) {
         std::cout << cwd << " > ";
         std::string input;
         std::getline(std::cin, input);
+
+        if (std::cin.fail()) {
+            if (std::cin.eof()) {
+                std::cout << "End of input reached.\n";
+                break;
+            }
+            std::cerr << "Error reading input. Please try again.\n";
+            std::cin.clear();
+            std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
+            continue;
+        }
 
         std::vector<std::string> argv_s = split(input, ' ');
 
@@ -89,7 +102,7 @@ int Shell::childProcess(void* arg) {
 
 
 int Shell::executeProcess(void* arg) {
-    auto start = std::chrono::high_resolution_clock::now();
+    auto start = std::chrono::steady_clock::now();
     char* child_stack = new char[STACK_SIZE];
     pid_t pid = clone(childProcess, child_stack + STACK_SIZE, SIGCHLD, arg);
 
@@ -100,7 +113,7 @@ int Shell::executeProcess(void* arg) {
     else {
         res = waitpid(pid, nullptr, 0);
     }
-    auto stop = std::chrono::high_resolution_clock::now();
+    auto stop = std::chrono::steady_clock::now();
     auto elapsed = std::chrono::duration_cast<std::chrono::milliseconds>(stop - start);
 
     std::cout << elapsed.count() << "ms" << std::endl;

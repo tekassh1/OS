@@ -1,0 +1,61 @@
+name: CI
+
+on:
+  push:
+    branches:
+      - master
+  pull_request:
+    branches:
+      - master
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      - name: Install build tools
+        run: |
+          sudo apt-get update && \
+          sudo apt-get install -y \
+          build-essential \
+          cmake \
+          ninja-build \
+          clang-tidy
+
+      - name: Configure
+        run: |
+          mkdir -p build
+          cd build
+          cmake .. -DCMAKE_BUILD_TYPE=Release -G Ninja
+
+      - name: Build
+        run: cd build && ninja && cd ..
+
+      - name: Save artifacts
+        uses: actions/upload-artifact@v3
+        with:
+          name: project-files
+          path: .
+
+  run-checks:
+    runs-on: ubuntu-latest
+    needs: build
+    steps:
+      - name: Download project files
+        uses: actions/download-artifact@v3
+        with:
+          name: project-files
+
+      - name: Run clang-tidy checks
+        run: |
+          cd CI
+          chmod +x run-clang-tidy-checks.sh
+          ./run-clang-tidy-checks.sh
+
+      - name: Run tests
+        run: |
+          cd CI
+          chmod +x run-tests.sh
+          ./run-tests.sh
